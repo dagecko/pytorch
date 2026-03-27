@@ -100,7 +100,11 @@ from torch.utils.weak import TensorWeakRef
 
 from .. import config, graph_break_hints, mutation_guard, replay_record, trace_rules
 from ..device_interface import get_registered_device_interfaces
-from ..exc import InternalTorchDynamoError, raise_observed_exception, unimplemented
+from ..exc import (
+    InternalTorchDynamoError,
+    raise_python_observed_exception,
+    unimplemented,
+)
 from ..guards import GuardBuilder, install_guard, make_dupe_guard
 from ..pgo import (
     auto_dynamic,
@@ -139,7 +143,6 @@ from ..source import (
     Source,
     SubclassAttrListSource,
     TupleIteratorGetItemSource,
-    UnspecializedBuiltinNNModuleSource,
     UnspecializedNNModuleSource,
 )
 from ..utils import (
@@ -2140,7 +2143,7 @@ class VariableBuilder:
                     for _, p in value.named_parameters():
                         self.mark_static_input(p, guard=freezing)
                 except TypeError as e:
-                    raise_observed_exception(type(e), self.tx, args=list(e.args))
+                    raise_python_observed_exception(type(e), self.tx, args=list(e.args))
 
             if (
                 callable(value.named_buffers)
@@ -2152,7 +2155,7 @@ class VariableBuilder:
                     for _, b in value.named_buffers():
                         self.mark_static_input(b, guard=freezing)
                 except TypeError as e:
-                    raise_observed_exception(type(e), self.tx, args=list(e.args))
+                    raise_python_observed_exception(type(e), self.tx, args=list(e.args))
 
             if freezing:
                 # we need to add the module to tracing context
